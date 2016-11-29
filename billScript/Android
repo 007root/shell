@@ -1,0 +1,56 @@
+#!/bin/bash
+letter=[a-Z*]
+year=$(date +%Y)
+#year=2016
+month=$(date +%m)
+mon=`expr $month - 1`
+#mon=12
+if [ $# -lt 1 ]; then
+	echo -e "\033[31mUsge: $0 {stopDate[28|29|30|31]}\033[0m"
+	exit 1
+elif [[ $1 == $letter ]]; then
+	echo -e "\033[31m Please enter numbers\033[0m"
+	exit 2
+elif [ $1 -ne 28 ] && [ $1 -ne 29 ] && [ $1 -ne 30 ] && [ $1 -ne 31 ]; then
+	echo -e "\033[31mPlease enter stopDate [28|29|30|31]\033[0m"
+	exit 3
+fi
+stopDate=$1
+
+# clear old data
+mysql -uroot -padmin -e "delete from Android.Avatar"
+mysql -uroot -padmin -e "delete from Android.Purchase"
+mysql -uroot -padmin -e "drop table Android.purchase$year"
+
+# import new data
+port=`ls /accountbook/Android/avatar | grep sql | grep -oE '[0-9]+'`
+for i in $port
+do
+mysql -uroot -padmin Android < /accountbook/Android/avatar/avatar$i.sql
+mysql -uroot -padmin -e "delete from Android.Avatar where Robot=1"
+mysql -uroot -padmin Android < /accountbook/Android/purchase/purchase$i.sql
+done
+
+
+
+
+# produce bill table
+little (){
+mysql -uroot -padmin -e "use Android ; create table purchase$year  select AvatarId,ProductId,CreateTime from Purchase where UNIX_TIMESTAMP(CreateTime) < UNIX_TIMESTAMP('$year-0$mon-$stopDate 23:59:59') AND UNIX_TIMESTAMP(CreateTime) > UNIX_TIMESTAMP('$year-0$mon-01 00:00:00')"
+mysql -uroot -padmin -e "use Android ; create table purchase${year}0$mon select purchase$year.*,Avatar.ChannelId from purchase$year left join Avatar on purchase$year.AvatarId = Avatar.Id"
+mysqldump -uroot -padmin Android purchase${year}0$mon > purchase${year}0$mon.sql
+}
+bigger (){
+mysql -uroot -padmin -e "use Android ; create table purchase$year  select AvatarId,ProductId,CreateTime from Purchase where UNIX_TIMESTAMP(CreateTime) < UNIX_TIMESTAMP('$year-$mon-$stopDate 23:59:59') AND UNIX_TIMESTAMP(CreateTime) > UNIX_TIMESTAMP('$year-$mon-01 00:00:00')"
+mysql -uroot -padmin -e "use Android ; create table purchase${year}$mon select purchase$year.*,Avatar.ChannelId from purchase$year left join Avatar on purchase$year.AvatarId = Avatar.Id"
+mysqldump -uroot -padmin Android purchase${year}$mon > purchase${year}$mon.sql
+}
+if [ $mon -le 9 ]; then
+	little
+else 
+	bigger
+fi
+
+
+
+
