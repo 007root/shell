@@ -1,0 +1,142 @@
+#!/bin/bash
+SUM='[a-z]*'
+SUM1='[0-9]*[a-z]*'
+if [ $# -eq 0 ]; then
+        echo "Usage $0 {message: 1..9} {directory}" 
+        exit 1
+elif [[ $1 == $SUM ]] || [[ $1 == $SUM1 ]] || [ $1 -le 0 ]; then
+        echo "Message on the number of"
+        exit 2
+elif [ -z $2 ] || [ ! -d $2 ]; then
+	echo "Please enter a directory"
+	exit 3
+fi
+cp -f $2/publish/GameService/version.txt /SVN/version.txt
+x=1
+for((j=0;j<$1;j++))
+do
+read -p "The $x message: "  Mess
+echo $Mess >> /SVN/version.txt
+        let x++ 
+done
+read -p "Please select the updated service apart with spaces: 1.Game 2.account 3.manage 4.gmtools 5.update 6.charge 7.zoneService: " ser
+LETTER='[a-Z]*'
+LETTER1='[0-9]*[a-Z]*'
+DIR=/SVN/trunk/version_guaji/game/0.10.0.0/
+for SER in $ser
+do
+if [[ $SER == $LETTER ]] || [[ $SER == $LETTER1 ]]; then
+	echo -e "\033[31mPlease choose between numbers 1-6\033[0m"
+	exit 4
+elif [ $SER -gt 7 ]; then
+	echo -e "\033[31mPlease enter by format\033[0m"
+	exit 5
+fi
+done
+for i in $ser
+do
+if [ $i -eq 1 ]; then
+	sed -i "1iGameService" /SVN/version.txt
+elif [ $i -eq 2 ]; then
+	sed -i "1iAccountService"  /SVN/version.txt
+elif [ $i -eq 3 ]; then
+	sed -i "1imanage"  /SVN/version.txt
+elif [ $i -eq 4 ]; then
+	sed -i "1igmtools"  /SVN/version.txt
+elif [ $i -eq 5 ]; then
+	sed -i "1iUpdateService"  /SVN/version.txt
+elif [ $i -eq 6 ]; then
+	sed -i "1iChargeService"  /SVN/version.txt
+elif [ $i -eq 7 ]; then
+	sed -i "1izoneService"  /SVN/version.txt
+fi 
+done
+M=`cat /SVN/version.txt`
+echo $M
+read -p "Please make sure you: y/n " con
+if [ "$con" != "y" ]; then
+	echo "Please re-operation"
+	exit 6
+fi
+cd $DIR
+
+svn ci -m "$M"
+
+
+
+echo -e "\033[31m\n\n\tPlease run RBClient \n\n\033[0m"
+
+#########################  old  svn   ###############################
+
+
+
+##!/bin/bash
+#SUM='[a-z]*'
+#SUM1='[0-9]*[a-z]*'
+#if [ $# -eq 0 ]; then
+#        echo "Usage $0 {message: 1..9} {directory}" 
+#        exit 1
+#elif [[ $1 == $SUM ]] || [[ $1 == $SUM1 ]] || [ $1 -le 0 ]; then
+#        echo "Message on the number of"
+#        exit 2
+#elif [ -z $2 ] || [ ! -d $2 ]; then
+#	echo "Please enter a directory"
+#	exit 3
+#fi
+#cp -f $2/publish/GameService/version.txt /SVN/version.txt
+#x=1
+#for((j=0;j<$1;j++))
+#do
+#read -p "The $x message: "  Mess
+#echo $Mess >> /SVN/version.txt
+#        let x++ 
+#done
+#read -p "Please select the updated service apart with spaces: 1.Game 2.account 3.manage 4.gmtools 5.update 6.charge: " ser
+#LETTER='[a-Z]*'
+#LETTER1='[0-9]*[a-Z]*'
+#DIR=/SVN/trunk/version_guaji/chuanshi/0.10.0.0/
+#for SER in $ser
+#do
+#if [[ $SER == $LETTER ]] || [[ $SER == $LETTER1 ]]; then
+#	echo -e "\033[31mPlease choose between numbers 1-6\033[0m"
+#	exit 4
+#elif [ $SER -gt 6 ]; then
+#	echo -e "\033[31mPlease enter by format\033[0m"
+#	exit 5
+#fi
+#done
+#for i in $ser
+#do
+#if [ $i -eq 1 ]; then
+#	sed -i "1iGameService" /SVN/version.txt
+#	cp -rf $2/publish/GameService $DIR
+#elif [ $i -eq 2 ]; then
+#	sed -i "1iAccountService"  /SVN/version.txt
+#	cp -rf $2/publish/AccountService $DIR
+#elif [ $i -eq 3 ]; then
+#	sed -i "1imanage"  /SVN/version.txt
+#	cp -rf $2/publish/manage $DIR
+#elif [ $i -eq 4 ]; then
+#	sed -i "1igmtools"  /SVN/version.txt
+#	cp -rf $2/publish/gmtools $DIR
+#elif [ $i -eq 5 ]; then
+#	sed -i "1iUpdateService"  /SVN/version.txt
+#	cp -rf $2/publish/UpdateService $DIR
+#elif [ $i -eq 6 ]; then
+#	sed -i "1iChargeService"  /SVN/version.txt
+#	cp -rf $2/publish/ChargeService $DIR
+#fi 
+#done
+#M=`cat /SVN/version.txt`
+#echo $M
+#read -p "Please make sure you: y/n " con
+#if [ "$con" != "y" ]; then
+#	echo "Please re-operation"
+#	exit 6
+#fi
+#cd $DIR
+#svn ci -m "$M"
+
+
+
+

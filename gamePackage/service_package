@@ -1,0 +1,126 @@
+#!/bin/bash
+DAT=`date +%F`
+TIM=`date +%T`
+# 判断参数数量
+if [ $# -eq 0 ]; then
+	echo -e "\033[31m Usage: $0  {service1 ...service2...} \033[0m"
+	exit 1
+fi
+
+# 判断第一个参数是否正确
+if [ "$1" != "AccountService" ] && [ "$1" != "GameService" ] && [ "$1" != "ChargeService" ] && [ "$1" != "manage" ] && [ "$1" != "gmtools" ] && [ "$1" != "UpdateService" ] && [ "$1" != "SdkService" ] && [ "$1" != "zoneService" ]; then
+	echo -e "\033[31m The  argev Use:{AccountService|GameService|ChargeService|manage|gmtools|UpdateService|zoneService}\033[0m"
+	exit 2
+fi
+
+
+# 询问用户是否需要指定版本号
+
+num='[0-9]*'
+num1='[0-9]*[a-Z]*'
+read -p "Do you want to specify a version number? (y/n) " choice
+if [ "$choice" == "y" ]; then
+	read -p "Please enter version number: " n
+	if [[ $n != $num ]] || [[ $n == $num1 ]]; then
+		echo -e "\033[31m Please enter numbers\033[0m"
+		exit 3
+	fi
+fi
+############################################################################################
+svn_dir=/SVN/trunk/version_guaji/game/0.10.0.0
+scp_dir=192.168.1.30:/home/share/servers/game/0.10.0.0
+ssh_way=/home/share/servers/game/0.10.0.0
+ver_way=192.168.1.30:/home/share/servers/game/0.10.0.0
+default_dir=`ssh 192.168.1.30 "ls /home/share/servers/game/0.10.0.0/$1" | sort -nr | head -n 1`
+argv=$n
+ver_dir=${argv:-$default_dir}
+
+
+# 检查游戏目录是否存在
+
+if [ 0 -ne `ssh 192.168.1.30 "[ -e $ssh_way/$1/$ver_dir ]"; echo $?` ]; then
+	echo -e "\033[31m$ver_way/$1/$ver_dir  Directory is not found ...... \033[0m"
+	exit 4
+fi
+
+# 根据输入服务名称开始打包
+
+while [ $# -gt 0 ]
+do
+if [ -d $1 ]; then
+	rm -rf $1
+fi
+
+if [ $1 == "AccountService" ]; then
+	mkdir -p ./$1/accountService
+	
+	# copy operation
+
+	zip -r AccountService${DAT}.zip AccountService/*
+	rm -rf $1
+	echo -e "$1\n$DAT $TIM\n$ver_way/$1/$ver_dir\n$ver_way/updateAccDb/$ver_dir\n"  >> /home/Directory/version
+elif [ $1 == "ChargeService" ]; then
+	mkdir -p ./$1/chargeService
+
+	# copy operation
+
+	zip -r ChargeService${DAT}.zip ChargeService/*
+	rm -rf $1
+	echo -e "$1\n$DAT $TIM\n$ver_way/$1/$ver_dir\n"  >> /home/Directory/version
+elif [ $1 == "GameService" ]; then
+	mkdir -p ./$1/{gameService,conf,mergetool,game/{sandprocess,sandplayoff}}
+	
+	# copy operation
+
+	zip -r GameService${DAT}.zip GameService/*
+	rm -rf $1
+	echo -e "$1\n$DAT $TIM\n$ver_way/$1/$ver_dir\n$ver_way/UpdateGameDb/$ver_dir\n$ver_way/sandprocess/$ver_dir\n$ver_way/sandplayoff/$ver_dir\n$ver_way/mergetool/$ver_dir\n"  >> /home/Directory/version
+elif [ $1 == "manage" ]; then
+	mkdir -p ./$1/{manage,public}
+
+	# copy operation
+
+	find ./$1/public/ -name .svn | xargs rm -rf
+	zip -r manage${DAT}.zip manage/*
+	rm -rf $1
+	echo -e "$1\n$DAT $TIM\n$ver_way/$1/$ver_dir\n"  >> /home/Directory/version
+elif [ $1 == "gmtools" ]; then
+	mkdir -p ./$1/{gmtools,public}
+	
+	# copy operation
+
+	find ./$1/public/ -name .svn | xargs rm -rf
+	zip -r gmtools${DAT}.zip gmtools/*
+	rm -rf $1
+	echo -e "$1\n$DAT $TIM\n$ver_way/$1/$ver_dir\n"  >> /home/Directory/version
+elif [ $1 == "UpdateService" ]; then
+	mkdir -p ./$1/updateService
+
+	# copy operation
+
+	zip -r UpdateService${DAT}.zip UpdateService/*
+	rm -rf $1
+	echo -e "$1\n$DAT $TIM\n$ver_way/$1/$ver_dir\n"  >> /home/Directory/version
+elif [ $1 == "SdkService" ]; then
+        mkdir -p ./$1/sdkService
+    
+	# copy operation
+
+        zip -r SdkService${DAT}.zip SdkService/*
+        rm -rf $1
+        echo -e "$1\n$DAT $TIM\n$ver_way/$1/$ver_dir\n$ver_way/updateSdkDb/$ver_dir\n"  >> /home/Directory/version
+
+
+elif [ $1 == "zoneService" ]; then
+	mkdir -p ./$1/{zoneService,conf}
+
+	# copy operation
+
+	zip -r zoneService${DAT}.zip zoneService/*
+	rm -rf $1
+	echo -e "$1\n$DAT $TIM\n$ver_way/$1/$ver_dir\n"  >> /home/Directory/version
+
+fi
+shift
+done
+

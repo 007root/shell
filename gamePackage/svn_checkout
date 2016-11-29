@@ -1,0 +1,180 @@
+#!/bin/bash
+DAT=`date +%F`
+TIM=`date +%T`
+if [ $# == 0 ]; then
+	echo "USAGE:$0  workdir [branchname] [data-dir] [Automatically generated ZIP:y]"
+	exit 1 ;
+fi
+echo $1
+mkdir -p /home/Directory/$1/publish
+cd $1
+
+if [ $# -ge 2 ]; then
+	echo "Check out code from branch:$2"
+	echo "$DAT $TIM" >> /home/Directory/$1/publish/version.txt
+	echo "svn://192.168.1.30/dev/branches/server/game/$2/gjserver" >> /home/Directory/$1/publish/version.txt
+	svn export svn://192.168.1.30/dev/branches/server/game/$2  --username root --password root | tail -1 &>> /home/Directory/$1/publish/version.txt
+	mv $2 ./server2
+else
+	echo "Check out code from trunk."
+	echo "$DAT $TIM" >> /home/Directory/$1/publish/version.txt
+	echo "svn://192.168.1.30/dev/trunk/server2" >> /home/Directory/$1/publish/version.txt
+	svn export svn://192.168.1.30/dev/trunk/server2 --username root --password root | tail -1 &>> /home/Directory/$1/publish/version.txt
+fi
+
+if [ $# -ge 3 ]; then
+	echo "Check out Data from branch:$3"
+	echo "$DAT $TIM" >> /home/Directory/$1/publish/version.txt
+	echo "svn://192.168.1.30/dev/trunk/server2/gjserver/addon/tables/shipping/$3" >> /home/Directory/$1/publish/version.txt
+	svn export svn://192.168.1.30/dev/trunk/server2/gjserver/addon/tables/shipping/$3  --username root --password root |tail -1 &>> /home/Directory/$1/publish/version.txt
+	rm -rf ./server2/gjserver/addon/tables
+	mv ./$3 ./server2/gjserver/addon/tables
+fi
+
+
+cd server2/gjserver/addon
+node-gyp configure
+node-gyp build -debug
+node-gyp build -release
+#cd ../protobuf
+#node-gyp rebuild
+cd ../../..
+#mkdir  publish/sql
+#cp server2/gjserver/sql/* publish/sql
+
+# game.node 瘦身
+/usr/bin/strip -s server2/gjserver/addon/build/Release/game.node
+/usr/bin/strip -s server2/gjserver/addon/build/Debug/game.node
+
+#生成各个服务器目录
+# AccountService 
+mkdir -p publish/AccountService/{utils,protobuf/build/Release}
+# copy operation
+mv server2/gjserver/accountService.conf{,.tmpl}
+
+
+
+# SdkService
+mkdir -p publish/SdkService/{utils,xml-crypto}
+# copy operation
+mv publish/SdkService/sdkService.conf{,.tmpl}
+
+
+
+# GameService
+mkdir -p publish/GameService/{conf,game,addon/build/{Release,Debug}}
+# copy operation
+mv publish/GameService/GameService.conf{,.tmpl}
+
+
+
+# zoneService
+mkdir -p publish/zoneService/{conf,utils,addon/build/Debug}
+# copy operation
+mv publish/zoneService/zoneService.conf{,.tmpl}
+
+
+
+# archivetools
+mkdir publish/archivetools
+# copy operation
+
+
+# ChargeService
+mkdir publish/ChargeService
+# copy operation
+mv publish/ChargeService/GBusCharge.conf{,.tmpl}
+
+
+# UpdateService
+mkdir publish/UpdateService
+# copy operation
+mv publish/UpdateService/updateService.conf{,.tmpl}
+
+
+# manage/GM
+cp -r server2/manage publish/manage
+mv publish/manage/app.conf{,.tmpl}
+cp -r server2/gmtools publish
+mv publish/gmtools/config.json{,.tmpl}
+
+
+
+
+
+
+
+# 自动生成服务器更新包
+####################################################################
+#read -p 'Whether to automatically (y/n): ' choice
+#if [ "$choice" != "y" ]; then
+#	exit 2
+#fi
+fun_dir=$1
+#定义自动生成更新包函数
+auto (){
+ # 执行 publish
+cp -r /home/Directory/$fun_dir/publish /home/Directory/Runing`date +%F`
+DIR=/home/Directory/Runing`date +%F`
+cp /config/accountService.conf $DIR/AccountService 
+cp /config/GBusCharge.conf $DIR/ChargeService
+cp /config/gameService.conf $DIR/GameService
+cp /config/config.json $DIR/gmtools
+cp /config/app.conf $DIR/manage
+cp /config/updateService.conf $DIR/UpdateService
+
+
+ #定义SVN目录
+svn_dir=/SVN/trunk/version_guaji/game/0.10.0.0/
+
+ # 复制文件到SVN目录
+cp -r /home/Directory/$fun_dir/publish/* $svn_dir
+
+
+ #获取不用更新的服务
+cd $svn_dir
+echo "$DAT $TIM" > /home/Directory/update.log
+svn st &>> /home/Directory/update.log
+NOTSER=`svn st | awk '{print $2}' | awk -F "/" '{print $1}' | uniq -u`
+for i in $NOTSER
+do
+	 #将只是version.txt文件有修改的服务 revert
+	cd $svn_dir
+	svn revert --depth files $i/version.txt &>> /home/Directory/update.log
+done
+
+
+ #将新添加的文件add到svn
+ADD=`svn st | awk '{print $1}'`
+for add in $ADD
+do
+if [ "$add" = "?" ]; then
+	# 将不在SVN版本控制范围内的文件add到SVN
+	cd $svn_dir
+	svn add * --force &>> /home/Directory/update.log
+fi
+done
+
+
+ # 获取需要更新的服务器
+#SER=`svn st | awk '{print $2}' | awk -F "/" '{print $1}' | uniq`
+#for arg in $SER
+#do
+ 	#生成更新服务器包
+#	sh /home/Directory/shengda $arg
+#done
+
+
+ # 删除publish目录
+rm -rf /home/Directory/Runing`date +%F`
+}
+
+
+choice=$4
+
+if [ "$choice" = "y" ]; then
+	auto
+else
+	exit 1
+fi
+
