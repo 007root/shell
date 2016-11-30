@@ -6,6 +6,7 @@ if [ $# == 0 ]; then
 	exit 1 ;
 fi
 echo $1
+read -p "Do you want to compile? (y/n) " compile
 mkdir -p /home/Directory/$1/publish
 cd $1
 
@@ -31,7 +32,7 @@ if [ $# -ge 3 ]; then
 	mv ./$3 ./server2/gjserver/addon/tables
 fi
 
-
+if [ "$compile" == "y" ]; then
 cd server2/gjserver/addon
 node-gyp configure
 node-gyp build -debug
@@ -42,9 +43,11 @@ cd ../../..
 #mkdir  publish/sql
 #cp server2/gjserver/sql/* publish/sql
 
-# game.node 瘦身
 /usr/bin/strip -s server2/gjserver/addon/build/Release/game.node
 /usr/bin/strip -s server2/gjserver/addon/build/Debug/game.node
+fi
+
+
 
 #生成各个服务器目录
 # AccountService 
