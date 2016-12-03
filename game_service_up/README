@@ -1,0 +1,31 @@
+Updat gameService:
+
+edit start_up.sh
+
+add the game ip and name into dict
+
+example:
+declare -A dic
+dic=(
+[192.168.1.101]="game01 game02"
+[192.168.1.102]="game03 game04"
+[192.168.1.103]="game03 game04"
+)
+
+excute command:
+
+$ sh start_up
+
+the start_up.sh will call game_up.sh to update gameService
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Update accountService:
+
+excute command:
+
+$ sh acc_up.sh
+
+input you want to update game
+
+

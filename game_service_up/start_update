@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# add gameService dict
+
+# Example:
+#declare -A dic
+#dic=(
+#[192.168.1.138]="game01 game02" 
+#)
+
+
+for key in $(echo ${!dic[@]})
+do
+	sh game_up.sh $key ${dic[$key]}
+
+done
+
