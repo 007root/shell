@@ -15,9 +15,10 @@ do
 		do
 			file_list[${#file_list[*]}]=$i
 		done
-		echo ${file_list[${#file_list[*]}-1]}
-		echo ${file_list[*]}
-		#rm -rf ${log_dir}/${internal_dir}/game${file_list[${#file_list[*]}-1]}.zip
+		for d in ${file_list[@]:3}
+		do
+			rm -rf ${log_dir}/${internal_dir}/game$d.zip
+		done
 	fi
 
 done
