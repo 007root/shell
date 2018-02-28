@@ -1,0 +1,28 @@
+记录一下自己常用的tmux命令；更多命令请参考Google搜索；
+
+安装：
+    sudo apt-get update 
+    sudo apt-get install tmux
+    
+使用：
+    1. 创建
+       tmux new-session -s admin -d      # 创建一个名字为 admin 的会话(-d 表示只创建不登录)
+       tmux new-window -t admin          # 在admin会话里创建一个窗口（此时admin会话中有两个窗口0和1，创建会话时会创建一个id为0的窗口）
+       tmux send-keys -t admin:0 "cd /" C-m "python x.py" C-m    # 给窗口0发送命令 cd / && python x.py        
+       tmux rename-window -t admin:0 py  # 重命名admin会话中的0窗口为 py （默认：0：bash）
+       tmux a -t admin                   # 链接会话
+       tmux kill-window -t admin         # 删除admin会话
+    2. 进入tmux会话常用按键（前缀默认是Ctrl+b）
+       C+b c  新建窗口
+       C+b 0  切换到0窗口，不同数字切换到不同窗口
+       C+b x  删除窗口
+       C+b ,  重命名窗口
+       C+b "  水平分割窗口
+       C+b %  垂直分割窗口
+       C+b 方向  根据方向切换面板
+       C+b q  显示分割后面板编号，编号消失前按相应的数字切换到编号对应的面板
+       C+b [  复制模式 （没用过，只是用来滚动翻看上面内容）
+       C+b s  以列表方式显示所有会话
+       C+b d  退出会话
+    3. tmux中嵌套tmux
+       按键与之前一样，只是在操作里面的tmux时需要C+b+b
